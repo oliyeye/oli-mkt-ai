@@ -15,7 +15,6 @@ channel = st.selectbox("Channel", ["Amazon", "Official Website", "Social Media",
 openai_api_key = st.text_input("Enter your OpenAI API Key", type="password")
 
 if st.button("Generate Marketing Copy & Comparison Table"):
-    # 生成文案的Prompt
     prompt = f"""
 You are a senior copywriter for a high-end home appliance brand. Please generate a {channel} product description in elegant, concise, and emotionally resonant English, referencing the tone of {brand_style}. Highlight the following features and make sure to differentiate from competitors: {competitors.replace(chr(10), ', ')}.
 
@@ -29,15 +28,19 @@ Please also provide 2 slogan options and a comparison table with the main compet
     if not openai_api_key:
         st.warning("Please enter your OpenAI API Key.")
     else:
-        openai.api_key = openai_api_key
-        with st.spinner("Generating..."):
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",  # 或 "gpt-4"（如有权限）
-                messages=[{"role": "system", "content": "You are a professional English marketing copywriter."},
-                          {"role": "user", "content": prompt}],
+        try:
+            client = openai.OpenAI(api_key=openai_api_key)
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a professional English marketing copywriter."},
+                    {"role": "user", "content": prompt}
+                ],
                 max_tokens=800,
                 temperature=0.7
             )
             output = response.choices[0].message.content
             st.markdown("### AI Generated Copy & Comparison")
             st.write(output)
+        except Exception as e:
+            st.error(f"Error: {e}")
